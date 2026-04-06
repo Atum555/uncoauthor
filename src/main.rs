@@ -10,12 +10,6 @@ use std::process::{Command, ExitCode};
 fn main() -> ExitCode {
     let cli = Cli::parse();
 
-    // Handle completions
-    if let Some(shell) = cli.completions {
-        cli::print_completions(shell);
-        return ExitCode::SUCCESS;
-    }
-
     // Handle hidden subcommands
     if let Some(cmd) = cli.command {
         return match cmd {
@@ -111,7 +105,7 @@ fn handle_msg_edit(file: &str) -> ExitCode {
 
 fn pick_branch() -> Result<String, String> {
     let output = Command::new("git")
-        .args(["branch", "--format=%(refname:short)"])
+        .args(["branch", "--all", "--format=%(refname:short)"])
         .output()
         .map_err(|e| format!("failed to list branches: {e}"))?;
 

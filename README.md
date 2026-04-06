@@ -24,28 +24,25 @@ uncoauthor v1.0.0
 ### From source
 
 ```bash
+cargo install --path .
+```
+
+Or manually:
+
+```bash
 cargo build --release
 cp target/release/uncoauthor ~/.local/bin/
 ```
 
 Make sure `~/.local/bin` is in your `PATH`.
 
-### Shell Completions
-
-```bash
-# Bash — append to ~/.bashrc or ~/.bash_completion
-uncoauthor --completions bash >> ~/.bash_completion
-
-# Zsh — place in your fpath
-uncoauthor --completions zsh > ~/.zfunc/_uncoauthor
-
-# Fish
-uncoauthor --completions fish > ~/.config/fish/completions/uncoauthor.fish
-```
-
 ## Usage
 
-```
+```bash
+# Run without arguments for an interactive branch picker
+uncoauthor
+
+# Or specify the base ref directly
 uncoauthor <base-ref>
 ```
 
@@ -53,11 +50,10 @@ uncoauthor <base-ref>
 | ------------ | ------------------------------------------------------------- |
 | `<base-ref>` | Branch name, tag, or commit SHA. Rewrites `<base-ref>..HEAD`. |
 
-| Flag                    | Description                             |
-| ----------------------- | --------------------------------------- |
-| `--completions <SHELL>` | Print shell completion script to stdout |
-| `--help`                | Show help                               |
-| `--version`             | Show version                            |
+| Flag        | Description |
+| ----------- | ----------- |
+| `--help`    | Show help   |
+| `--version` | Show version |
 
 ### Requirements
 
