@@ -5,7 +5,7 @@ mod rebase;
 
 use clap::Parser;
 use cli::{Cli, InternalCommand};
-use std::process::ExitCode;
+use std::process::{Command, ExitCode};
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
@@ -24,13 +24,16 @@ fn main() -> ExitCode {
         };
     }
 
-    // Main flow: require base_ref
+    // Main flow: require base_ref (prompt interactively if missing)
     let base_ref = match cli.base_ref {
         Some(r) => r,
-        None => {
-            eprintln!("error: <BASE_REF> is required");
-            return ExitCode::from(1);
-        }
+        None => match pick_branch() {
+            Ok(branch) => branch,
+            Err(e) => {
+                eprintln!("error: {e}");
+                return ExitCode::from(1);
+            }
+        },
     };
 
     // Pre-flight checks
@@ -104,4 +107,33 @@ fn handle_msg_edit(file: &str) -> ExitCode {
             ExitCode::from(1)
         }
     }
+}
+
+fn pick_branch() -> Result<String, String> {
+    let output = Command::new("git")
+        .args(["branch", "--format=%(refname:short)"])
+        .output()
+        .map_err(|e| format!("failed to list branches: {e}"))?;
+
+    if !output.status.success() {
+        return Err("not a git repository".to_string());
+    }
+
+    let branches: Vec<String> = String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(String::from)
+        .collect();
+
+    if branches.is_empty() {
+        return Err("no branches found".to_string());
+    }
+
+    let selection = dialoguer::FuzzySelect::new()
+        .with_prompt("Select base branch")
+        .items(&branches)
+        .default(0)
+        .interact()
+        .map_err(|e| format!("selection cancelled: {e}"))?;
+
+    Ok(branches[selection].clone())
 }
