@@ -2,7 +2,7 @@
 
 ## Overview
 
-`git-uncoauthor` is a shell-orchestration tool. It does not link against libgit2 — all git operations use `std::process::Command` to invoke the `git` CLI. This keeps the dependency footprint minimal and the build fast.
+`uncoauthor` is a shell-orchestration tool. It does not link against libgit2 — all git operations use `std::process::Command` to invoke the `git` CLI. This keeps the dependency footprint minimal and the build fast.
 
 ## Module Map
 
@@ -50,8 +50,8 @@ Returns the commit count on success.
 1. Determines the path to its own executable (`std::env::current_exe()`).
 2. Creates a temporary counter file to track how many commits had trailers removed.
 3. Runs `git rebase --interactive <base-ref>` with two environment overrides:
-   - `GIT_SEQUENCE_EDITOR` → `"<self> __sequence-edit"` (replaces `pick` with `reword`)
-   - `GIT_EDITOR` → `"<self> __msg-edit"` (strips co-author lines)
+    - `GIT_SEQUENCE_EDITOR` → `"<self> __sequence-edit"` (replaces `pick` with `reword`)
+    - `GIT_EDITOR` → `"<self> __msg-edit"` (strips co-author lines)
 4. Reads the counter file and returns the count.
 
 ### `message.rs` — Message Transformation
@@ -66,20 +66,20 @@ Pure functions with no side effects — easy to unit test.
 The tool uses a **self-reinvocation** pattern for the rebase editors. Instead of writing separate scripts or helper binaries, the main binary accepts hidden subcommands (`__sequence-edit` and `__msg-edit`) that git invokes during the rebase.
 
 ```
-User runs:  git-uncoauthor main
+User runs:  uncoauthor main
                 │
                 ▼
          preflight checks
                 │
                 ▼
     git rebase --interactive main
-      GIT_SEQUENCE_EDITOR="git-uncoauthor __sequence-edit"
-      GIT_EDITOR="git-uncoauthor __msg-edit"
+      GIT_SEQUENCE_EDITOR="uncoauthor __sequence-edit"
+      GIT_EDITOR="uncoauthor __msg-edit"
                 │
-                ├──▶ git calls: git-uncoauthor __sequence-edit /tmp/todo
+                ├──▶ git calls: uncoauthor __sequence-edit /tmp/todo
                 │        (rewrites pick → reword)
                 │
-                └──▶ git calls: git-uncoauthor __msg-edit /tmp/COMMIT_EDITMSG
+                └──▶ git calls: uncoauthor __msg-edit /tmp/COMMIT_EDITMSG
                          (strips Co-authored-by lines, repeats per commit)
 ```
 

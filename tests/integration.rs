@@ -5,7 +5,7 @@ fn bin_path() -> PathBuf {
     let mut path = std::env::current_exe().unwrap();
     path.pop(); // remove test binary name
     path.pop(); // remove "deps"
-    path.push("git-uncoauthor");
+    path.push("uncoauthor");
     path
 }
 
@@ -15,11 +15,8 @@ struct TestRepo {
 
 impl TestRepo {
     fn new(name: &str) -> Self {
-        let dir = std::env::temp_dir().join(format!(
-            "git-uncoauthor-test-{}-{}",
-            name,
-            std::process::id()
-        ));
+        let dir =
+            std::env::temp_dir().join(format!("uncoauthor-test-{}-{}", name, std::process::id()));
         if dir.exists() {
             std::fs::remove_dir_all(&dir).unwrap();
         }

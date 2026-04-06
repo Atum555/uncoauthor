@@ -6,10 +6,8 @@ pub fn run_rebase(base_ref: &str) -> Result<usize, String> {
     let exe = std::env::current_exe().map_err(|e| format!("cannot determine own path: {e}"))?;
     let exe_str = exe.display().to_string();
 
-    let counter_file = std::env::temp_dir().join(format!(
-        "git-uncoauthor-counter-{}",
-        std::process::id()
-    ));
+    let counter_file =
+        std::env::temp_dir().join(format!("uncoauthor-counter-{}", std::process::id()));
     std::fs::write(&counter_file, "0").map_err(|e| format!("cannot create counter file: {e}"))?;
 
     let seq_editor = format!("\"{}\" __sequence-edit", exe_str);

@@ -3,7 +3,7 @@ use clap_complete::Shell;
 
 #[derive(Parser)]
 #[command(
-    name = "git-uncoauthor",
+    name = "uncoauthor",
     version,
     about = "Remove Co-authored-by trailers from commits in a range"
 )]
@@ -31,5 +31,10 @@ pub enum InternalCommand {
 }
 
 pub fn print_completions(shell: Shell) {
-    clap_complete::generate(shell, &mut Cli::command(), "git-uncoauthor", &mut std::io::stdout());
+    clap_complete::generate(
+        shell,
+        &mut Cli::command(),
+        "uncoauthor",
+        &mut std::io::stdout(),
+    );
 }
