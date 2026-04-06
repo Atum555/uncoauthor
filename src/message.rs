@@ -43,22 +43,40 @@ pub fn strip_coauthors(msg: &str) -> Result<(String, usize), StripError> {
     Ok((result, removed))
 }
 
-/// Rewrite a rebase todo file, replacing `pick` with `reword`.
+/// Rewrite a rebase todo file, replacing `pick` with `reword` only for
+/// commits whose message contains a `Co-authored-by` trailer.
 pub fn rewrite_todo(contents: &str) -> String {
     contents
         .lines()
         .map(|line| {
             let trimmed = line.trim_start();
             if trimmed.starts_with("pick ") {
-                let indent = &line[..line.len() - trimmed.len()];
-                format!("{}reword {}", indent, &trimmed["pick ".len()..])
-            } else {
-                line.to_string()
+                let rest = &trimmed["pick ".len()..];
+                let sha = rest.split_whitespace().next().unwrap_or("");
+                if !sha.is_empty() && commit_has_coauthor(sha) {
+                    let indent = &line[..line.len() - trimmed.len()];
+                    return format!("{indent}reword {rest}");
+                }
             }
+            line.to_string()
         })
         .collect::<Vec<_>>()
         .join("\n")
         + "\n"
+}
+
+/// Check if a commit's message contains a Co-authored-by line.
+fn commit_has_coauthor(sha: &str) -> bool {
+    let output = std::process::Command::new("git")
+        .args(["log", "-1", "--format=%B", sha])
+        .output();
+
+    match output {
+        Ok(out) => String::from_utf8_lossy(&out.stdout)
+            .lines()
+            .any(|line| line.trim_start().to_ascii_lowercase().starts_with("co-authored-by:")),
+        Err(_) => false,
+    }
 }
 
 #[cfg(test)]
@@ -120,19 +138,5 @@ mod tests {
         assert_eq!(cleaned, "title\n\nbody\n");
     }
 
-    #[test]
-    fn rewrite_todo_basic() {
-        let todo = "pick abc123 first commit\npick def456 second commit\n";
-        let result = rewrite_todo(todo);
-        assert_eq!(result, "reword abc123 first commit\nreword def456 second commit\n");
-    }
-
-    #[test]
-    fn rewrite_todo_preserves_comments() {
-        let todo = "pick abc123 msg\n# comment line\npick def456 msg2\n";
-        let result = rewrite_todo(todo);
-        assert!(result.contains("reword abc123"));
-        assert!(result.contains("# comment line"));
-        assert!(result.contains("reword def456"));
-    }
+    // rewrite_todo tests are in integration tests since they require a real git repo
 }
