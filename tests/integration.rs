@@ -175,3 +175,49 @@ fn test_no_commits_in_range() {
         "should mention no commits, got: {stderr}"
     );
 }
+
+#[test]
+fn bash_completions_contain_git_ref_completion() {
+    let output = Command::new(bin_path())
+        .arg("--completions")
+        .arg("bash")
+        .output()
+        .unwrap();
+    let script = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        script.contains("git for-each-ref"),
+        "bash completions should contain git ref lookup, got:\n{script}"
+    );
+    assert!(script.contains("refs/heads/"));
+    assert!(script.contains("refs/tags/"));
+}
+
+#[test]
+fn zsh_completions_contain_git_ref_completion() {
+    let output = Command::new(bin_path())
+        .arg("--completions")
+        .arg("zsh")
+        .output()
+        .unwrap();
+    let script = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        script.contains("__uncoauthor_git_refs"),
+        "zsh completions should contain git refs helper, got:\n{script}"
+    );
+    assert!(script.contains("git for-each-ref"));
+}
+
+#[test]
+fn fish_completions_contain_git_ref_completion() {
+    let output = Command::new(bin_path())
+        .arg("--completions")
+        .arg("fish")
+        .output()
+        .unwrap();
+    let script = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        script.contains("git for-each-ref"),
+        "fish completions should contain git ref lookup, got:\n{script}"
+    );
+    assert!(script.contains("refs/heads/"));
+}
